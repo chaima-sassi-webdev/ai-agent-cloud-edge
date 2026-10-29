@@ -1,0 +1,13 @@
+fastapi
+uvicorn
+sqlalchemy
+psycopg2-binary
+docker
+openai
+pydantic
+requests
+python-dotenv
+=======
+openai
+docker
+pydantic

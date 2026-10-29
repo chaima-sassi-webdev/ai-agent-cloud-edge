@@ -1,0 +1,34 @@
+
+
+services:  #déclarer tous les services à lancer 
+  db: # le service de la base de données PostgreSQL
+    image: postgres:15-alpine
+    container_name: postgres_db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: ai_agent_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data   #Sauvegarder les données de la base dans un volume pour ne pas les perdre à l'arrêt
+    restart: always
+  api:  # le service de l'application FastAPI
+    build: .
+    container_name: ai_agent_api
+    restart: always # redémarrer ce conteneur en cas de plantage ou redémarrage de la machine
+    ports:
+      - "8000:8000"  # lire le port 8000 de la machine hôte au port 8000 du conteneur en cas de plantage
+    extra_hosts: 
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock  # partage le socket Docker pour que sandbox lance des nouveaux conteneurs isolement
+      - ./workspace:/app/workspace # Monter le dossier local "workspace" pour y stocker et persister les scripts générés. 
+    environment:
+      - OPENAI_API_KEY=key_oAnBJt2ldBquJLfM
+      - DATABASE_URL=postgresql+psycopg2://postgres:postgres@db:5432/ai_agent_db #configure l'URL de connexion SQLAlchemy pour joindre conteneur db
+    depends_on:   #gérer l'ordre de démarrage des services 
+      - db  #force docker à démarrer le conteneur de la base de données (db) avant de lancer l'API (api)
+
+volumes:
+  postgres_data:  #le volume utilisé par PostgreSQL pour conserver les données enregistrées 
